@@ -1,0 +1,37 @@
+{
+  "title": "Ravelli Smart Wi‑Fi",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Ravelli Smart Wi‑Fi",
+        "description": "Enter your cloud credentials and device information.",
+        "data": {
+          "email": "Email",
+          "password": "Password",
+          "base_url": "Base URL (e.g. https://smart.ravelli.cloud/)",
+          "device_id": "Device ID"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unknown error"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    },
+    "options": {
+      "step": {
+        "init": {
+          "title": "Options",
+          "data": {
+            "scan_interval": "Polling interval (seconds)",
+            "base_url": "Base URL",
+            "device_id": "Device ID"
+          }
+        }
+      }
+    }
+  }
+}

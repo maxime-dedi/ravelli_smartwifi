@@ -1,0 +1,10 @@
+{
+  "name": "Ravelli Smart Wi‑Fi",
+  "render_readme": true,
+  "country": "EU",
+  "domains": [
+    "climate",
+    "sensor"
+  ],
+  "homeassistant": "2024.8.0"
+}

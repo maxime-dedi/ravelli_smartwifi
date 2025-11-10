@@ -1,0 +1,20 @@
+{
+  "domain": "ravelli_smartwifi",
+  "name": "Ravelli Smart Wi\u2011Fi (Unofficial)",
+  "version": "0.1.0",
+  "documentation": "https://github.com/your-user/ravelli_smartwifi",
+  "issue_tracker": "https://github.com/your-user/ravelli_smartwifi/issues",
+  "codeowners": [
+    "@your-user"
+  ],
+  "requirements": [
+    "aiohttp>=3.9.0"
+  ],
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "loggers": [
+    "custom_components.ravelli_smartwifi"
+  ],
+  "config_flow": true,
+  "homeassistant": "2024.8.0"
+}
