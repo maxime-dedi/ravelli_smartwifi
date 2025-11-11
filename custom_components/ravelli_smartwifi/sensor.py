@@ -16,7 +16,6 @@ SENSORS = (
     ("status_code", "Status Code", None),
     ("error", "Error Code", None),
     ("error_description", "Error Description", None),
-    ("pending_ignition", "Pending Ignition", None),
 )
 
 async def async_setup_entry(hass, entry, async_add_entities):

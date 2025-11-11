@@ -62,12 +62,7 @@ class RavelliClimate(CoordinatorEntity, ClimateEntity):
 
     async def async_set_hvac_mode(self, hvac_mode):
         if hvac_mode == HVACMode.OFF:
-            self.coordinator.cancel_pending_ignition()
             await self._client.async_turn_off()
         else:
-            if self.coordinator.is_final_cleaning:
-                self.coordinator.queue_ignition_after_cleaning()
-            else:
-                self.coordinator.cancel_pending_ignition()
             await self._client.async_turn_on()
         await self.coordinator.async_request_refresh()
