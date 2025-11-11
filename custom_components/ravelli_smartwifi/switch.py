@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -32,20 +31,16 @@ class RavelliStoveSwitch(CoordinatorEntity, SwitchEntity):
     def is_on(self) -> bool:
         return bool(self.coordinator.data.get("is_on"))
 
-    def _ensure_action_allowed(self) -> None:
-        if self.coordinator.is_final_cleaning:
-            raise HomeAssistantError(
-                "Le poêle termine son extinction (FINAL CLEANING). "
-                "Attendez la fin du cycle avant d'envoyer une nouvelle commande."
-            )
-
     async def async_turn_on(self, **kwargs):
-        self._ensure_action_allowed()
+        if self.coordinator.is_final_cleaning:
+            self.coordinator.queue_ignition_after_cleaning()
+        else:
+            self.coordinator.cancel_pending_ignition()
         await self._client.async_turn_on()
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs):
-        self._ensure_action_allowed()
+        self.coordinator.cancel_pending_ignition()
         await self._client.async_turn_off()
         await self.coordinator.async_request_refresh()
 
@@ -58,3 +53,12 @@ class RavelliStoveSwitch(CoordinatorEntity, SwitchEntity):
             name=self.coordinator.device_name,
             configuration_url=self.coordinator.base_url,
         )
+
+    @property
+    def extra_state_attributes(self):
+        data = self.coordinator.data or {}
+        return {
+            "status": data.get("status"),
+            "status_code": data.get("status_code"),
+            "pending_ignition": self.coordinator.pending_ignition,
+        }
