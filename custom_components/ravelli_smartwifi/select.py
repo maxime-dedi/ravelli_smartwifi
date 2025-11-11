@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from homeassistant.components.number import NumberEntity
+from homeassistant.components.select import SelectEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -8,20 +8,19 @@ from .const import CONF_BASE_URL, CONF_TOKEN, DOMAIN
 from .coordinator import RavelliCoordinator
 
 PARALLEL_UPDATES = 0
+POWER_OPTIONS = ["1", "2", "3", "4", "5"]
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
     coordinator: RavelliCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([RavelliPowerLevelNumber(coordinator)], True)
+    async_add_entities([RavelliPowerLevelSelect(coordinator)], True)
 
 
-class RavelliPowerLevelNumber(CoordinatorEntity, NumberEntity):
+class RavelliPowerLevelSelect(CoordinatorEntity, SelectEntity):
     _attr_has_entity_name = True
     _attr_name = "Power Level"
-    _attr_native_min_value = 1
-    _attr_native_max_value = 5
-    _attr_native_step = 1
     _attr_icon = "mdi:fire"
+    _attr_options = POWER_OPTIONS
 
     def __init__(self, coordinator: RavelliCoordinator) -> None:
         super().__init__(coordinator)
@@ -32,11 +31,16 @@ class RavelliPowerLevelNumber(CoordinatorEntity, NumberEntity):
         return f"{self.coordinator.entry.data[CONF_TOKEN]}_power_level"
 
     @property
-    def native_value(self):
-        return self.coordinator.data.get("power")
+    def current_option(self) -> str | None:
+        power = self.coordinator.data.get("power")
+        if power is None:
+            return None
+        return str(int(power))
 
-    async def async_set_native_value(self, value):
-        await self._client.async_set_power(int(value))
+    async def async_select_option(self, option: str) -> None:
+        if option not in POWER_OPTIONS:
+            raise ValueError(f"Unsupported power level {option}")
+        await self._client.async_set_power(int(option))
         await self.coordinator.async_request_refresh()
 
     @property

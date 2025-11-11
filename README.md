@@ -9,7 +9,7 @@
 - Entities:
   - `climate.ravelli_*` (heat/off, target temperature)
   - Sensors: ambient temperature, target setpoint, power level, status text/code + error info
-- Number: adjust power level (1–5) directly
+- Select: choose power level (1–5) directly
 - Switch: toggle stove on/off status
 - Options Flow: change polling interval, base URL, and toggle verbose debug logs
 
