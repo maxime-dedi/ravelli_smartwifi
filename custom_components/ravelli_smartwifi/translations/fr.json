@@ -1,3 +1,74 @@
 {
-  "title": "Ravelli Smart Wi\u2011Fi"
+  "title": "Ravelli Smart Wi\u2011Fi",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connexion \u00e0 Ravelli Smart Wi\u2011Fi",
+        "description": "Saisissez le jeton API de votre po\u00eale. Vous pouvez le retrouver dans l'application Ravelli (WiNet).",
+        "data": {
+          "token": "Jeton API (GUID)",
+          "base_url": "URL de base (ex. https://ws.cloudwinet.it/WiNetStove.svc/json)",
+          "debug": "Activer les journaux de debug d\u00e9taill\u00e9s"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Connexion impossible",
+      "invalid_auth": "Authentification invalide",
+      "unknown": "Erreur inconnue"
+    },
+    "abort": {
+      "already_configured": "L'appareil est d\u00e9j\u00e0 configur\u00e9"
+    },
+    "options": {
+      "step": {
+        "init": {
+          "title": "Options",
+          "data": {
+            "scan_interval": "Intervalle d'interrogation (secondes)",
+            "base_url": "URL de base",
+            "debug": "Activer les journaux de debug d\u00e9taill\u00e9s"
+          }
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "stove": {
+        "name": "Po\u00eale"
+      }
+    },
+    "select": {
+      "power_level": {
+        "name": "Niveau de puissance"
+      }
+    },
+    "sensor": {
+      "ambient_temp": {
+        "name": "Temp\u00e9rature ambiante"
+      },
+      "set_temp": {
+        "name": "Consigne de temp\u00e9rature"
+      },
+      "power": {
+        "name": "Niveau de puissance"
+      },
+      "status": {
+        "name": "Statut"
+      },
+      "status_code": {
+        "name": "Code statut"
+      },
+      "error": {
+        "name": "Code erreur"
+      },
+      "error_description": {
+        "name": "Description de l'erreur"
+      },
+      "pending_ignition": {
+        "name": "Allumage en attente"
+      }
+    }
+  }
 }

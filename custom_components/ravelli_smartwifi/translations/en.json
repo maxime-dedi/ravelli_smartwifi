@@ -1,3 +1,41 @@
 {
-  "title": "Ravelli Smart Wi\u2011Fi"
+  "title": "Ravelli Smart Wi\u2011Fi",
+  "entity": {
+    "climate": {
+      "stove": {
+        "name": "Stove"
+      }
+    },
+    "select": {
+      "power_level": {
+        "name": "Power Level"
+      }
+    },
+    "sensor": {
+      "ambient_temp": {
+        "name": "Ambient Temperature"
+      },
+      "set_temp": {
+        "name": "Target Temperature"
+      },
+      "power": {
+        "name": "Power Level"
+      },
+      "status": {
+        "name": "Status"
+      },
+      "status_code": {
+        "name": "Status Code"
+      },
+      "error": {
+        "name": "Error Code"
+      },
+      "error_description": {
+        "name": "Error Description"
+      },
+      "pending_ignition": {
+        "name": "Pending Ignition"
+      }
+    }
+  }
 }

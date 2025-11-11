@@ -9,28 +9,39 @@ from .const import DOMAIN
 from .coordinator import RavelliCoordinator
 
 SENSORS = (
-    ("ambient_temp", "Ambient Temperature", UnitOfTemperature.CELSIUS),
-    ("set_temp", "Target Temperature", UnitOfTemperature.CELSIUS),
-    ("power", "Power Level", None),
-    ("status", "Status", None),
-    ("status_code", "Status Code", None),
-    ("error", "Error Code", None),
-    ("error_description", "Error Description", None),
-    ("pending_ignition", "Pending Ignition", None),
+    ("ambient_temp", "Ambient Temperature", "ambient_temp", UnitOfTemperature.CELSIUS),
+    ("set_temp", "Target Temperature", "set_temp", UnitOfTemperature.CELSIUS),
+    ("power", "Power Level", "power", None),
+    ("status", "Status", "status", None),
+    ("status_code", "Status Code", "status_code", None),
+    ("error", "Error Code", "error", None),
+    ("error_description", "Error Description", "error_description", None),
+    ("pending_ignition", "Pending Ignition", "pending_ignition", None),
 )
 
 async def async_setup_entry(hass, entry, async_add_entities):
     coordinator: RavelliCoordinator = hass.data[DOMAIN][entry.entry_id]
-    entities = [RavelliSensor(coordinator, key, name, unit) for key, name, unit in SENSORS]
+    entities = [
+        RavelliSensor(coordinator, key, name, translation_key, unit)
+        for key, name, translation_key, unit in SENSORS
+    ]
     async_add_entities(entities, True)
 
 class RavelliSensor(CoordinatorEntity, SensorEntity):
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator: RavelliCoordinator, key: str, name: str, unit):
+    def __init__(
+        self,
+        coordinator: RavelliCoordinator,
+        key: str,
+        name: str,
+        translation_key: str,
+        unit,
+    ):
         super().__init__(coordinator)
         self._key = key
         self._attr_name = name
+        self._attr_translation_key = translation_key
         self._unit = unit
 
     @property

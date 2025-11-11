@@ -21,6 +21,7 @@ class RavelliPowerLevelSelect(CoordinatorEntity, SelectEntity):
     _attr_name = "Power Level"
     _attr_icon = "mdi:fire"
     _attr_options = POWER_OPTIONS
+    _attr_translation_key = "power_level"
 
     def __init__(self, coordinator: RavelliCoordinator) -> None:
         super().__init__(coordinator)

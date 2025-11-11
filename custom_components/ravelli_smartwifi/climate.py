@@ -18,6 +18,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class RavelliClimate(CoordinatorEntity, ClimateEntity):
     _attr_has_entity_name = True
     _attr_name = "Stove"
+    _attr_translation_key = "stove"
     _attr_hvac_modes = [HVACMode.HEAT, HVACMode.OFF]
     _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
