@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 
-from .const import DOMAIN, CONF_TOKEN, CONF_BASE_URL, CONF_SCAN_INTERVAL, DEFAULT_BASE_URL, DEFAULT_SCAN_INTERVAL
+from .const import DOMAIN, CONF_TOKEN, CONF_BASE_URL, CONF_SCAN_INTERVAL, CONF_DEBUG, DEFAULT_BASE_URL, DEFAULT_SCAN_INTERVAL
 from .api import RavelliSmartWifiClient
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -15,7 +16,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
         if user_input is not None:
             session = async_get_clientsession(self.hass)
-            client = RavelliSmartWifiClient(session, user_input[CONF_BASE_URL], user_input[CONF_TOKEN])
+            client = RavelliSmartWifiClient(
+                session,
+                user_input[CONF_BASE_URL],
+                user_input[CONF_TOKEN],
+                debug=user_input.get(CONF_DEBUG, False),
+            )
             try:
                 await client.async_get_status()
             except Exception:
@@ -29,17 +35,24 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data={
                         CONF_TOKEN: user_input[CONF_TOKEN],
                         CONF_BASE_URL: user_input[CONF_BASE_URL],
+                        CONF_DEBUG: user_input.get(CONF_DEBUG, False),
                     },
                 )
 
         schema = vol.Schema({
             vol.Required(CONF_TOKEN): str,
             vol.Required(CONF_BASE_URL, default=DEFAULT_BASE_URL): str,
+            vol.Optional(CONF_DEBUG, default=False): bool,
         })
         return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
 
     async def async_step_import(self, import_config):
         return await self.async_step_user(import_config)
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        return OptionsFlow(config_entry)
 
 class OptionsFlow(config_entries.OptionsFlow):
     def __init__(self, entry):
@@ -52,5 +65,6 @@ class OptionsFlow(config_entries.OptionsFlow):
         schema = vol.Schema({
             vol.Required(CONF_SCAN_INTERVAL, default=self.entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)): int,
             vol.Required(CONF_BASE_URL, default=self.entry.options.get(CONF_BASE_URL, self.entry.data.get(CONF_BASE_URL))): str,
+            vol.Required(CONF_DEBUG, default=self.entry.options.get(CONF_DEBUG, self.entry.data.get(CONF_DEBUG, False))): bool,
         })
         return self.async_show_form(step_id="init", data_schema=schema)

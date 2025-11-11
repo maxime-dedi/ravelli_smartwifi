@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from homeassistant.components.climate import ClimateEntity
-from homeassistant.components.climate.const import HVACMode, SUPPORT_TARGET_TEMPERATURE
-from homeassistant.const import UnitOfTemperature, ATTR_TEMPERATURE
-from homeassistant.core import callback
+from homeassistant.components.climate.const import ClimateEntityFeature, HVACMode
+from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, CONF_TOKEN
+from .const import CONF_TOKEN, DOMAIN
 from .coordinator import RavelliCoordinator
 
 PARALLEL_UPDATES = 0
@@ -19,7 +18,7 @@ class RavelliClimate(CoordinatorEntity, ClimateEntity):
     _attr_has_entity_name = True
     _attr_name = "Stove"
     _attr_hvac_modes = [HVACMode.HEAT, HVACMode.OFF]
-    _attr_supported_features = SUPPORT_TARGET_TEMPERATURE
+    _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_min_temp = 5
     _attr_max_temp = 30

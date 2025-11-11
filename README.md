@@ -9,7 +9,7 @@
 - Entities:
   - `climate.ravelli_*` (heat/off, target temperature)
   - Sensors: ambient temperature, target setpoint, power level, status text/code + error info
-- Options Flow: change polling interval and base URL
+- Options Flow: change polling interval, base URL, and toggle verbose debug logs
 
 ## Known limitations
 - You still need to extract the **API token (GUID)** from the official Ravelli / CloudWiNet app. The integration cannot obtain it for you.
@@ -20,7 +20,7 @@
 2. Restart Home Assistant.
 3. Go to **Settings → Devices & services → Add integration → Ravelli Smart Wi‑Fi**.
 4. Enter the stove **API token** (looks like `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`). Default base URL already points to CloudWiNet, but you can override it if needed.
-5. Adjust the polling interval/base URL later via the integration options if necessary.
+5. Adjust the polling interval/base URL and toggle verbose debug logs later via the integration options if necessary.
 
 ## HACS (optional)
 This repo is HACS‑ready (`hacs.json`). After you push to GitHub:

@@ -7,7 +7,8 @@
         "description": "Enter your stove API token. You can find it in the Ravelli app (WiNet).",
         "data": {
           "token": "API Token (GUID)",
-          "base_url": "Base URL (e.g. https://ws.cloudwinet.it/WiNetStove.svc/json)"
+          "base_url": "Base URL (e.g. https://ws.cloudwinet.it/WiNetStove.svc/json)",
+          "debug": "Enable verbose debug logging"
         }
       }
     },
@@ -25,7 +26,8 @@
           "title": "Options",
           "data": {
             "scan_interval": "Polling interval (seconds)",
-            "base_url": "Base URL"
+            "base_url": "Base URL",
+            "debug": "Enable verbose debug logging"
           }
         }
       }

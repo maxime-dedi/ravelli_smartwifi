@@ -14,10 +14,11 @@ _LOGGER = logging.getLogger(__name__)
 class RavelliSmartWifiClient:
     """Client for the CloudWiNet (Ravelli Smart Wi‑Fi) JSON API."""
 
-    def __init__(self, session: aiohttp.ClientSession, base_url: str, token: str) -> None:
+    def __init__(self, session: aiohttp.ClientSession, base_url: str, token: str, debug: bool = False) -> None:
         self._session = session
         self._base = base_url.rstrip("/")
         self._token = token
+        self._debug = debug
 
     def _url(self, endpoint: str, *extra: str) -> str:
         parts = [self._base, endpoint, quote(self._token, safe="")]
@@ -25,13 +26,21 @@ class RavelliSmartWifiClient:
             parts.extend(quote(str(arg), safe="") for arg in extra)
         return "/".join(parts)
 
+    def _redact(self, value: str) -> str:
+        if not self._token:
+            return value
+        prefix = self._token[:4]
+        return value.replace(self._token, f"{prefix}***")
+
     async def _request(self, endpoint: str, *extra: str) -> Dict[str, Any]:
         url = self._url(endpoint, *extra)
-        _LOGGER.debug("GET %s", url)
+        _LOGGER.debug("GET %s", self._redact(url))
         async with self._session.get(url, timeout=30) as resp:
             text = await resp.text()
             if resp.status != 200:
                 raise RuntimeError(f"{endpoint} failed: HTTP {resp.status} {text}")
+            if self._debug:
+                _LOGGER.debug("%s response: %s", endpoint, text)
             try:
                 data = json.loads(text)
             except json.JSONDecodeError as err:
@@ -69,7 +78,7 @@ class RavelliSmartWifiClient:
         status_text = status_data.get("StatusDescription")
         is_on = status_code not in (0, None)
 
-        return {
+        summary = {
             "status_code": status_code,
             "status": status_text,
             "error": status_data.get("Error"),
@@ -79,6 +88,9 @@ class RavelliSmartWifiClient:
             "ambient_temp": ambient_temp,
             "is_on": is_on,
         }
+        if self._debug:
+            _LOGGER.debug("Aggregated status: %s", summary)
+        return summary
 
     async def async_turn_on(self) -> None:
         self._ensure_success("Ignit", await self._request("Ignit"))
