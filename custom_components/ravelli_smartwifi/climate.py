@@ -6,7 +6,7 @@ from homeassistant.const import UnitOfTemperature, ATTR_TEMPERATURE
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_TOKEN
 from .coordinator import RavelliCoordinator
 
 PARALLEL_UPDATES = 0
@@ -30,7 +30,7 @@ class RavelliClimate(CoordinatorEntity, ClimateEntity):
 
     @property
     def unique_id(self):
-        return f"{self.coordinator.entry.data['device_id']}_climate"
+        return f"{self.coordinator.entry.data[CONF_TOKEN]}_climate"
 
     @property
     def current_temperature(self):

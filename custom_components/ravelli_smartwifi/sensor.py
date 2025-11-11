@@ -4,7 +4,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import UnitOfTemperature
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_TOKEN
 from .coordinator import RavelliCoordinator
 
 SENSORS = (
@@ -12,6 +12,9 @@ SENSORS = (
     ("set_temp", "Target Temperature", UnitOfTemperature.CELSIUS),
     ("power", "Power Level", None),
     ("status", "Status", None),
+    ("status_code", "Status Code", None),
+    ("error", "Error Code", None),
+    ("error_description", "Error Description", None),
 )
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -30,7 +33,7 @@ class RavelliSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def unique_id(self):
-        return f"{self.coordinator.entry.data['device_id']}_{self._key}"
+        return f"{self.coordinator.entry.data[CONF_TOKEN]}_{self._key}"
 
     @property
     def native_unit_of_measurement(self):

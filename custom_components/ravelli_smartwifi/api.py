@@ -1,77 +1,95 @@
 from __future__ import annotations
+
 import asyncio
-import aiohttp
+import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
+from urllib.parse import quote
+
+import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class RavelliSmartWifiClient:
-    """Minimal client for Ravelli Smart Wi‑Fi cloud (endpoints are placeholders)."""
+    """Client for the CloudWiNet (Ravelli Smart Wi‑Fi) JSON API."""
 
-    def __init__(self, session: aiohttp.ClientSession, base_url: str, email: str, password: str, device_id: str):
+    def __init__(self, session: aiohttp.ClientSession, base_url: str, token: str) -> None:
         self._session = session
-        self._base = base_url.rstrip('/')
-        self._email = email
-        self._password = password
-        self._device_id = device_id
-        self._token: Optional[str] = None
+        self._base = base_url.rstrip("/")
+        self._token = token
 
-    async def async_login(self) -> None:
-        """Authenticate and store a bearer token.
+    def _url(self, endpoint: str, *extra: str) -> str:
+        parts = [self._base, endpoint, quote(self._token, safe="")]
+        if extra:
+            parts.extend(quote(str(arg), safe="") for arg in extra)
+        return "/".join(parts)
 
-        TODO: Replace endpoint and payload/keys with real values captured from app traffic.
-        """
-        url = f"{self._base}/api/login"
-        payload = {"email": self._email, "password": self._password}
-        _LOGGER.debug("POST %s %s", url, payload)
-        async with self._session.post(url, json=payload, timeout=30) as resp:
-            data = await resp.json(content_type=None)
-            if resp.status in (200, 201) and "token" in data:
-                self._token = data["token"]
-                return
-            raise RuntimeError(f"Login failed: {resp.status} {data}")
+    async def _request(self, endpoint: str, *extra: str) -> Dict[str, Any]:
+        url = self._url(endpoint, *extra)
+        _LOGGER.debug("GET %s", url)
+        async with self._session.get(url, timeout=30) as resp:
+            text = await resp.text()
+            if resp.status != 200:
+                raise RuntimeError(f"{endpoint} failed: HTTP {resp.status} {text}")
+            try:
+                data = json.loads(text)
+            except json.JSONDecodeError as err:
+                raise RuntimeError(f"{endpoint} returned invalid JSON: {text}") from err
+            return data
 
-    def _headers(self) -> Dict[str, str]:
-        hdr = {"Accept": "application/json"}
-        if self._token:
-            hdr["Authorization"] = f"Bearer {self._token}"
-        return hdr
+    @staticmethod
+    def _ensure_success(endpoint: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        if not payload.get("Success", False):
+            raise RuntimeError(
+                f"{endpoint} failed: {payload.get('Error')} {payload.get('ErrorDescription')}"
+            )
+        return payload
+
+    async def _call_result(self, endpoint: str, *extra: str) -> float:
+        data = self._ensure_success(endpoint, await self._request(endpoint, *extra))
+        if "Result" not in data:
+            raise RuntimeError(f"{endpoint} response missing 'Result': {data}")
+        return data["Result"]
+
+    async def _call_status(self) -> Dict[str, Any]:
+        return self._ensure_success("GetStatus", await self._request("GetStatus"))
 
     async def async_get_status(self) -> Dict[str, Any]:
-        """Get stove status.
+        status_task = self._call_status()
+        power_task = self._call_result("GetPower")
+        set_temp_task = self._call_result("GetTemperature")
+        ambient_temp_task = self._call_result("GetActualTemperature")
 
-        Expected (example):
-        {"ambient_temp": 21.5, "set_temp": 22, "power": 3, "status": "heating", "is_on": true}
-        TODO: Replace the path and keys according to real API.
-        """
-        url = f"{self._base}/api/devices/{self._device_id}/status"
-        _LOGGER.debug("GET %s", url)
-        async with self._session.get(url, headers=self._headers(), timeout=30) as resp:
-            if resp.status != 200:
-                raise RuntimeError(f"Status failed: {resp.status}")
-            return await resp.json(content_type=None)
+        status_data, power, set_temp, ambient_temp = await asyncio.gather(
+            status_task, power_task, set_temp_task, ambient_temp_task
+        )
+
+        status_code = status_data.get("Status")
+        status_text = status_data.get("StatusDescription")
+        is_on = status_code not in (0, None)
+
+        return {
+            "status_code": status_code,
+            "status": status_text,
+            "error": status_data.get("Error"),
+            "error_description": status_data.get("ErrorDescription"),
+            "power": power,
+            "set_temp": set_temp,
+            "ambient_temp": ambient_temp,
+            "is_on": is_on,
+        }
 
     async def async_turn_on(self) -> None:
-        url = f"{self._base}/api/devices/{self._device_id}/actions/on"
-        _LOGGER.debug("POST %s", url)
-        async with self._session.post(url, headers=self._headers(), timeout=30) as resp:
-            if resp.status not in (200, 204): raise RuntimeError("turn_on failed")
+        self._ensure_success("Ignit", await self._request("Ignit"))
 
     async def async_turn_off(self) -> None:
-        url = f"{self._base}/api/devices/{self._device_id}/actions/off"
-        _LOGGER.debug("POST %s", url)
-        async with self._session.post(url, headers=self._headers(), timeout=30) as resp:
-            if resp.status not in (200, 204): raise RuntimeError("turn_off failed")
+        self._ensure_success("Shutdown", await self._request("Shutdown"))
 
     async def async_set_temperature(self, temperature: float) -> None:
-        url = f"{self._base}/api/devices/{self._device_id}/setpoint"
-        _LOGGER.debug("POST %s temp=%s", url, temperature)
-        async with self._session.post(url, headers=self._headers(), json={"set_temp": temperature}, timeout=30) as resp:
-            if resp.status not in (200, 204): raise RuntimeError("set_temperature failed")
+        target = int(round(float(temperature)))
+        self._ensure_success("SetTemperature", await self._request("SetTemperature", str(target)))
 
     async def async_set_power(self, power: int) -> None:
-        url = f"{self._base}/api/devices/{self._device_id}/power"
-        _LOGGER.debug("POST %s power=%s", url, power)
-        async with self._session.post(url, headers=self._headers(), json={"power": power}, timeout=30) as resp:
-            if resp.status not in (200, 204): raise RuntimeError("set_power failed")
+        level = int(power)
+        self._ensure_success("SetPower", await self._request("SetPower", str(level)))

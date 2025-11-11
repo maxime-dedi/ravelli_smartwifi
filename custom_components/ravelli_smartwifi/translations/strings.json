@@ -4,12 +4,10 @@
     "step": {
       "user": {
         "title": "Connect to Ravelli Smart Wi‑Fi",
-        "description": "Enter your cloud credentials and device information.",
+        "description": "Enter your stove API token. You can find it in the Ravelli app (WiNet).",
         "data": {
-          "email": "Email",
-          "password": "Password",
-          "base_url": "Base URL (e.g. https://smart.ravelli.cloud/)",
-          "device_id": "Device ID"
+          "token": "API Token (GUID)",
+          "base_url": "Base URL (e.g. https://ws.cloudwinet.it/WiNetStove.svc/json)"
         }
       }
     },
@@ -27,8 +25,7 @@
           "title": "Options",
           "data": {
             "scan_interval": "Polling interval (seconds)",
-            "base_url": "Base URL",
-            "device_id": "Device ID"
+            "base_url": "Base URL"
           }
         }
       }
