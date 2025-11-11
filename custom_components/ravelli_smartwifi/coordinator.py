@@ -49,8 +49,8 @@ class RavelliCoordinator(DataUpdateCoordinator):
         except Exception as err:
             raise UpdateFailed(str(err)) from err
 
+        status_code = data.get("status_code")
         if self._pending_ignition:
-            status_code = data.get("status_code")
             if status_code == 0:
                 try:
                     await self.client.async_turn_on()
@@ -67,7 +67,9 @@ class RavelliCoordinator(DataUpdateCoordinator):
                 self._pending_ignition = False
 
         data["pending_ignition"] = self._pending_ignition
-        data["is_on_effective"] = bool(data.get("is_on") or self._pending_ignition)
+        data["is_on_effective"] = self._derive_effective_state(
+            status_code, data.get("is_on")
+        )
         return data
 
     @property
@@ -102,4 +104,15 @@ class RavelliCoordinator(DataUpdateCoordinator):
     @property
     def effective_is_on(self) -> bool:
         data = self.data or {}
-        return bool(data.get("is_on") or self._pending_ignition)
+        return self._derive_effective_state(self.status_code, data.get("is_on"))
+
+    def _derive_effective_state(
+        self, status_code: int | None, raw_is_on: bool | None
+    ) -> bool:
+        if status_code in (None, 0):
+            return False
+        if status_code == 6:
+            return self._pending_ignition
+        if raw_is_on is not None:
+            return bool(raw_is_on)
+        return True
