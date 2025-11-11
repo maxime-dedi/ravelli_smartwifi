@@ -30,6 +30,7 @@ class RavelliCoordinator(DataUpdateCoordinator):
             CONF_BASE_URL, entry.data.get(CONF_BASE_URL, DEFAULT_BASE_URL)
         )
         self.device_name = entry.title or f"Ravelli Stove {self.token[:4].upper()}"
+        self._pending_ignition = False
         debug_enabled = entry.options.get(CONF_DEBUG, entry.data.get(CONF_DEBUG, False))
         self.client = RavelliSmartWifiClient(
             session, self.base_url, self.token, debug=debug_enabled
@@ -44,6 +45,37 @@ class RavelliCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         try:
-            return await self.client.async_get_status()
+            data = await self.client.async_get_status()
+            if data.get("is_on"):
+                # Stove is already running; clear any queued start.
+                self._pending_ignition = False
+            elif self._pending_ignition:
+                status_code = data.get("status_code")
+                if status_code == 0:
+                    try:
+                        await self.client.async_turn_on()
+                    except Exception as err:
+                        _LOGGER.warning(
+                            "Deferred ignition failed for %s: %s", self.token[:4], err
+                        )
+                    else:
+                        self._pending_ignition = False
+            data["pending_ignition"] = self._pending_ignition
+            return data
         except Exception as err:
             raise UpdateFailed(str(err)) from err
+
+    def queue_ignition_after_cleaning(self) -> None:
+        self._pending_ignition = True
+
+    def cancel_pending_ignition(self) -> None:
+        self._pending_ignition = False
+
+    @property
+    def pending_ignition(self) -> bool:
+        return self._pending_ignition
+
+    @property
+    def is_final_cleaning(self) -> bool:
+        data = self.data or {}
+        return data.get("status_code") == 6
