@@ -1,5 +1,5 @@
 DOMAIN = "ravelli_smartwifi"
-PLATFORMS = ["climate", "sensor"]
+PLATFORMS = ["climate", "sensor", "number", "switch"]
 
 CONF_TOKEN = "token"
 CONF_BASE_URL = "base_url"

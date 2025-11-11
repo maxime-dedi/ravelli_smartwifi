@@ -3,9 +3,10 @@ from __future__ import annotations
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import ClimateEntityFeature, HVACMode
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_TOKEN, DOMAIN
+from .const import CONF_BASE_URL, CONF_TOKEN, DOMAIN
 from .coordinator import RavelliCoordinator
 
 PARALLEL_UPDATES = 0
@@ -42,6 +43,20 @@ class RavelliClimate(CoordinatorEntity, ClimateEntity):
     @property
     def hvac_mode(self):
         return HVACMode.HEAT if self.coordinator.data.get("is_on") else HVACMode.OFF
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        token = self.coordinator.entry.data[CONF_TOKEN]
+        base_url = self.coordinator.entry.options.get(
+            CONF_BASE_URL, self.coordinator.entry.data.get(CONF_BASE_URL)
+        )
+        return DeviceInfo(
+            identifiers={(DOMAIN, token)},
+            manufacturer="Ravelli",
+            model="Smart Wi‑Fi",
+            name=f"Ravelli Stove {token[:4].upper()}",
+            configuration_url=base_url,
+        )
 
     async def async_set_temperature(self, **kwargs):
         temp = kwargs.get(ATTR_TEMPERATURE)

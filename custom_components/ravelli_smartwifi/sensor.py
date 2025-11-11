@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import UnitOfTemperature
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, CONF_TOKEN
+from .const import CONF_BASE_URL, CONF_TOKEN, DOMAIN
 from .coordinator import RavelliCoordinator
 
 SENSORS = (
@@ -42,3 +43,17 @@ class RavelliSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self):
         return self.coordinator.data.get(self._key)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        token = self.coordinator.entry.data[CONF_TOKEN]
+        base_url = self.coordinator.entry.options.get(
+            CONF_BASE_URL, self.coordinator.entry.data.get(CONF_BASE_URL)
+        )
+        return DeviceInfo(
+            identifiers={(DOMAIN, token)},
+            manufacturer="Ravelli",
+            model="Smart Wi‑Fi",
+            name=f"Ravelli Stove {token[:4].upper()}",
+            configuration_url=base_url,
+        )
