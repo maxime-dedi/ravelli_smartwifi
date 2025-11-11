@@ -16,5 +16,8 @@
     "custom_components.ravelli_smartwifi"
   ],
   "config_flow": true,
+  "after_dependencies": [
+    "number"
+  ],
   "homeassistant": "2024.8.0"
 }
