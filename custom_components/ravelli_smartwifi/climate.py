@@ -42,7 +42,7 @@ class RavelliClimate(CoordinatorEntity, ClimateEntity):
 
     @property
     def hvac_mode(self):
-        return HVACMode.HEAT if self.coordinator.data.get("is_on") else HVACMode.OFF
+        return HVACMode.HEAT if self.coordinator.effective_is_on else HVACMode.OFF
 
     @property
     def device_info(self) -> DeviceInfo:

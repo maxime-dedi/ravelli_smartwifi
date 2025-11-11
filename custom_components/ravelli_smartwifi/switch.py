@@ -29,7 +29,7 @@ class RavelliStoveSwitch(CoordinatorEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool:
-        return bool(self.coordinator.data.get("is_on"))
+        return self.coordinator.effective_is_on
 
     async def async_turn_on(self, **kwargs):
         if self.coordinator.is_final_cleaning:

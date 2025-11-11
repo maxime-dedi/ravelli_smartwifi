@@ -67,6 +67,7 @@ class RavelliCoordinator(DataUpdateCoordinator):
                 self._pending_ignition = False
 
         data["pending_ignition"] = self._pending_ignition
+        data["is_on_effective"] = bool(data.get("is_on") or self._pending_ignition)
         return data
 
     @property
@@ -97,3 +98,8 @@ class RavelliCoordinator(DataUpdateCoordinator):
     @property
     def pending_ignition(self) -> bool:
         return self._pending_ignition
+
+    @property
+    def effective_is_on(self) -> bool:
+        data = self.data or {}
+        return bool(data.get("is_on") or self._pending_ignition)

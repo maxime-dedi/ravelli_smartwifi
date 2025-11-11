@@ -120,7 +120,7 @@ class RavelliSmartWifiClient:
         if status_code in (None, 0):
             return False
         if status_code == 6:
-            return True
+            return False
         if status_text and status_code is None:
             normalized = status_text.upper()
             if any(keyword in normalized for keyword in ("CLEANING", "OFF", "STOP")):
