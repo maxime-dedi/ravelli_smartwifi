@@ -76,7 +76,7 @@ class RavelliSmartWifiClient:
 
         status_code = status_data.get("Status")
         status_text = status_data.get("StatusDescription")
-        is_on = status_code not in (0, None)
+        is_on = self._derive_is_on(status_code, status_text)
 
         summary = {
             "status_code": status_code,
@@ -105,3 +105,14 @@ class RavelliSmartWifiClient:
     async def async_set_power(self, power: int) -> None:
         level = int(power)
         self._ensure_success("SetPower", await self._request("SetPower", str(level)))
+
+    @staticmethod
+    def _derive_is_on(status_code: int | None, status_text: str | None) -> bool:
+        """Return True when the stove is actively heating or igniting."""
+        if status_code in (None, 0, 6):
+            return False
+        if status_text:
+            normalized = status_text.upper()
+            if any(keyword in normalized for keyword in ("CLEANING", "OFF", "STOP")):
+                return False
+        return True

@@ -5,7 +5,7 @@ from homeassistant.const import UnitOfTemperature
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_BASE_URL, CONF_TOKEN, DOMAIN
+from .const import DOMAIN
 from .coordinator import RavelliCoordinator
 
 SENSORS = (
@@ -34,7 +34,7 @@ class RavelliSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def unique_id(self):
-        return f"{self.coordinator.entry.data[CONF_TOKEN]}_{self._key}"
+        return f"{self.coordinator.token}_{self._key}"
 
     @property
     def native_unit_of_measurement(self):
@@ -46,14 +46,10 @@ class RavelliSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        token = self.coordinator.entry.data[CONF_TOKEN]
-        base_url = self.coordinator.entry.options.get(
-            CONF_BASE_URL, self.coordinator.entry.data.get(CONF_BASE_URL)
-        )
         return DeviceInfo(
-            identifiers={(DOMAIN, token)},
+            identifiers={(DOMAIN, self.coordinator.token)},
             manufacturer="Ravelli",
             model="Smart Wi‑Fi",
-            name=f"Ravelli Stove {token[:4].upper()}",
-            configuration_url=base_url,
+            name=self.coordinator.device_name,
+            configuration_url=self.coordinator.base_url,
         )

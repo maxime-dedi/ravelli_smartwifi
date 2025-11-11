@@ -4,7 +4,7 @@ from homeassistant.components.select import SelectEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_BASE_URL, CONF_TOKEN, DOMAIN
+from .const import DOMAIN
 from .coordinator import RavelliCoordinator
 
 PARALLEL_UPDATES = 0
@@ -28,7 +28,7 @@ class RavelliPowerLevelSelect(CoordinatorEntity, SelectEntity):
 
     @property
     def unique_id(self) -> str:
-        return f"{self.coordinator.entry.data[CONF_TOKEN]}_power_level"
+        return f"{self.coordinator.token}_power_level"
 
     @property
     def current_option(self) -> str | None:
@@ -45,14 +45,10 @@ class RavelliPowerLevelSelect(CoordinatorEntity, SelectEntity):
 
     @property
     def device_info(self) -> DeviceInfo:
-        token = self.coordinator.entry.data[CONF_TOKEN]
-        base_url = self.coordinator.entry.options.get(
-            CONF_BASE_URL, self.coordinator.entry.data.get(CONF_BASE_URL)
-        )
         return DeviceInfo(
-            identifiers={(DOMAIN, token)},
+            identifiers={(DOMAIN, self.coordinator.token)},
             manufacturer="Ravelli",
             model="Smart Wi‑Fi",
-            name=f"Ravelli Stove {token[:4].upper()}",
-            configuration_url=base_url,
+            name=self.coordinator.device_name,
+            configuration_url=self.coordinator.base_url,
         )
