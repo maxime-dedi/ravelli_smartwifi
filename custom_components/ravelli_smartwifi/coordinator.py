@@ -47,3 +47,12 @@ class RavelliCoordinator(DataUpdateCoordinator):
             return await self.client.async_get_status()
         except Exception as err:
             raise UpdateFailed(str(err)) from err
+
+    @property
+    def status_code(self) -> int | None:
+        data = self.data or {}
+        return data.get("status_code")
+
+    @property
+    def is_final_cleaning(self) -> bool:
+        return self.status_code == 6

@@ -5,6 +5,7 @@ from homeassistant.components.climate.const import ClimateEntityFeature, HVACMod
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN
 from .coordinator import RavelliCoordinator
@@ -61,6 +62,11 @@ class RavelliClimate(CoordinatorEntity, ClimateEntity):
             await self.coordinator.async_request_refresh()
 
     async def async_set_hvac_mode(self, hvac_mode):
+        if self.coordinator.is_final_cleaning:
+            raise HomeAssistantError(
+                "Le poêle termine son extinction (FINAL CLEANING). "
+                "Attendez la fin du cycle avant d'envoyer une nouvelle commande."
+            )
         if hvac_mode == HVACMode.OFF:
             await self._client.async_turn_off()
         else:

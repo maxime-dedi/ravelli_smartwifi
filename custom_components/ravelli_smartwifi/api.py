@@ -20,10 +20,12 @@ class RavelliSmartWifiClient:
         self._token = token
         self._debug = debug
 
-    def _url(self, endpoint: str, *extra: str) -> str:
+    def _url(self, endpoint: str, *extra: str, suffix: str = "") -> str:
         parts = [self._base, endpoint, quote(self._token, safe="")]
         if extra:
             parts.extend(quote(str(arg), safe="") for arg in extra)
+        if suffix:
+            parts[-1] = f"{parts[-1]}{suffix}"
         return "/".join(parts)
 
     def _redact(self, value: str) -> str:
@@ -32,8 +34,8 @@ class RavelliSmartWifiClient:
         prefix = self._token[:4]
         return value.replace(self._token, f"{prefix}***")
 
-    async def _request(self, endpoint: str, *extra: str) -> Dict[str, Any]:
-        url = self._url(endpoint, *extra)
+    async def _request(self, endpoint: str, *extra: str, suffix: str = "") -> Dict[str, Any]:
+        url = self._url(endpoint, *extra, suffix=suffix)
         _LOGGER.debug("GET %s", self._redact(url))
         async with self._session.get(url, timeout=30) as resp:
             text = await resp.text()
@@ -100,18 +102,26 @@ class RavelliSmartWifiClient:
 
     async def async_set_temperature(self, temperature: float) -> None:
         target = int(round(float(temperature)))
-        self._ensure_success("SetTemperature", await self._request("SetTemperature", str(target)))
+        self._ensure_success(
+            "SetTemperature",
+            await self._request("SetTemperature", suffix=f";{target}"),
+        )
 
     async def async_set_power(self, power: int) -> None:
         level = int(power)
-        self._ensure_success("SetPower", await self._request("SetPower", str(level)))
+        self._ensure_success(
+            "SetPower",
+            await self._request("SetPower", suffix=f";{level}"),
+        )
 
     @staticmethod
     def _derive_is_on(status_code: int | None, status_text: str | None) -> bool:
         """Return True when the stove is actively heating or igniting."""
-        if status_code in (None, 0, 6):
+        if status_code in (None, 0):
             return False
-        if status_text:
+        if status_code == 6:
+            return True
+        if status_text and status_code is None:
             normalized = status_text.upper()
             if any(keyword in normalized for keyword in ("CLEANING", "OFF", "STOP")):
                 return False
